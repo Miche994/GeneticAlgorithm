@@ -1,0 +1,70 @@
+\documentclass[12pt]{beamer}
+\usetheme[progressbar=frametitle]{metropolis}
+\usepackage{appendixnumberbeamer}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage[scale=2]{ccicons}
+\usepackage{pgfplots}
+\usepackage{xspace}
+\usepackage{bm}
+\usepackage{adjustbox}
+\usepgfplotslibrary{dateplot}
+\setbeamercovered{transparent=30,again covered={\opaqueness<1->{30}}}
+
+\title{Optimal Database Design Problem}
+\author{Defended by: Group 07 \texorpdfstring{\\Magnani, Marchi, Moncada, Iaia,}{}\texorpdfstring{\\Palmieri, Ondesca, Ombe}{}}
+\date{25, November 2018}
+\institute{Politecnico di Torino\\Master Degree in Computer Engineering\\Department of Control and Computer Engineering}
+
+\begin{document}
+  \maketitle
+  % ------------------------------------------------------------------------------------------------------------
+  %													Index (Tabel of contents)
+  % ------------------------------------------------------------------------------------------------------------
+  \begin{frame}[fragile]{Index}
+    \begin{itemize}
+    	\item Mathematical Model
+    	\item Algorithm presentation
+    	\item Results Analysis
+  	\end{itemize}
+  \end{frame}
+
+
+  \section{Mathematical Model}
+  % ------------------------------------------------------------------------------------------------------------
+  %													Mathematical Model
+  % ------------------------------------------------------------------------------------------------------------
+  \begin{frame}[fragile]{Mathematical Model}
+  	\begin{center}
+  		$$max\quad \sum_{c\in C}^{} x_c\sum_{q\in Q}^{} y_{cq} g_{cq}  -  \sum_{i\in I}^{} z_i f_i$$\\
+  		$$\sum_{c\in C}^{} y_{cq} \leq 1 \quad \forall q \in Q $$\\
+  		$$\sum_{i\in I}^{} z_i m_i \leq M$$\\
+  		$x_c, y_{cq}, z_i \in [0,1]$\\
+  		$x_c = 1$ if config \emph{c} is active, 0 otherwise\\
+  		$y_{cq} = 1$ if config \emph{c} satisfies query \emph{q}, 0 otherwise\\
+  		$z_i = 1$ if index \emph{i} is built, 0 otherwise
+  	\end{center}
+  \end{frame}
+
+  \section{Algorithm presentation}
+  % ------------------------------------------------------------------------------------------------------------
+  %													Algorithm presentation
+  % ------------------------------------------------------------------------------------------------------------
+  \begin{frame}[fragile]{Algorithm Presentation}
+  \end{frame}
+
+  \section{Results analysis}
+  % ------------------------------------------------------------------------------------------------------------
+  %													Results
+  % ------------------------------------------------------------------------------------------------------------
+  \begin{frame}[fragile]{Result Analysis}
+  \end{frame}
+
+  % ------------------------------------------------------------------------------------------------------------
+  %													End
+  % ------------------------------------------------------------------------------------------------------------
+  \begin{frame}[standout]
+  	FINE
+  \end{frame}
+
+\end{document}
