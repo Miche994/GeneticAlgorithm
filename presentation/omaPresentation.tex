@@ -35,14 +35,25 @@
   %													Mathematical Model
   % ------------------------------------------------------------------------------------------------------------
   \begin{frame}[fragile]{Mathematical Model}
+  	\begin{columns}
+  		\begin{column}[T]{0.05\textwidth}
+  			o.f.\\~\\
+  			s.t.
+  		\end{column}
+  		\begin{column}[T]{0.95\textwidth}
+  			$$\quad max \sum_{c\in C}^{} \sum_{q\in Q}^{} y_{cq} g_{cq}  -  \sum_{i\in 	}^{}	 z_i f_i$$
+  			$$\quad \sum_{i\in I}^{} z_i m_i \leq M$$
+  			$$\sum_{c\in C}^{} y_{cq} \leq 1 \quad\forall q \in Q $$
+  			$$y_{cq} \leq z_i \quad\forall c \in C, q \in Q, i \in I_c$$
+  			$$y_{cq}, z_i \in [0,1]$$
+  			$y_{cq} = 1$ if config \emph{c} satisfies query \emph{q}, 0 otherwise\\
+  			$z_i = 1$ if index \emph{i} is built, 0 otherwise
+  		\end{column}
+  	\end{columns}
+  \end{frame}
+  \begin{frame}[fragile]{Mathematical Model}
   	\begin{center}
-  		$$max\quad \sum_{c\in C}^{} x_c\sum_{q\in Q}^{} y_{cq} g_{cq}  -  \sum_{i\in I}^{} z_i f_i$$\\
-  		$$\sum_{c\in C}^{} y_{cq} \leq 1 \quad \forall q \in Q $$\\
-  		$$\sum_{i\in I}^{} z_i m_i \leq M$$\\
-  		$x_c, y_{cq}, z_i \in [0,1]$\\
-  		$x_c = 1$ if config \emph{c} is active, 0 otherwise\\
-  		$y_{cq} = 1$ if config \emph{c} satisfies query \emph{q}, 0 otherwise\\
-  		$z_i = 1$ if index \emph{i} is built, 0 otherwise
+
   	\end{center}
   \end{frame}
 
