@@ -52,9 +52,17 @@
   	\end{columns}
   \end{frame}
   \begin{frame}[fragile]{Mathematical Model}
-  	\begin{center}
 
-  	\end{center}
+      \textbf{Objective Function}: the net gain is given by subtracting to the total gain earned by using certain configurations, the indexes building cost. Obviously, we want to maximize that profit. 
+
+      \textbf{Constraints}:
+      \begin{itemize}
+        \item Memory used by indexes cannot exceed M
+        \item Each query can be served at most by 1 configuration
+        \item All indexes of a configuration must be built if it serves at least one query.
+      \end{itemize}
+
+      \textbf{Domain}: the used variables are boolean, so the possible values are \{0, 1\}
   \end{frame}
 
   \section{Algorithm presentation}
