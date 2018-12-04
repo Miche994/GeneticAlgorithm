@@ -12,59 +12,12 @@
 \setbeamercovered{transparent=30,again covered={\opaqueness<1->{30}}}
 
 \title{Optimal Database Design Problem}
-\author{Defended by: Group 07 \texorpdfstring{\\Magnani, Marchi, Moncada, Iaia,}{}\texorpdfstring{\\Palmieri, Ondesca, Ombe}{}}
+\author{Defended by: Group 06 \texorpdfstring{\\Magnani, Marchi, Moncada, Iaia,}{}\texorpdfstring{\\Palmieri, Ondesca, Ombe}{}}
 \date{25, November 2018}
 \institute{Politecnico di Torino\\Master Degree in Computer Engineering\\Department of Control and Computer Engineering}
 
 \begin{document}
   \maketitle
-  % ------------------------------------------------------------------------------------------------------------
-  %													Index (Tabel of contents)
-  % ------------------------------------------------------------------------------------------------------------
-  \begin{frame}[fragile]{Index}
-    \begin{itemize}
-    	\item Mathematical Model
-    	\item Algorithm presentation
-    	\item Results Analysis
-  	\end{itemize}
-  \end{frame}
-
-
-  \section{Mathematical Model}
-  % ------------------------------------------------------------------------------------------------------------
-  %													Mathematical Model
-  % ------------------------------------------------------------------------------------------------------------
-  \begin{frame}[fragile]{Mathematical Model}
-  	\begin{columns}
-  		\begin{column}[T]{0.05\textwidth}
-  			o.f.\\~\\
-  			s.t.
-  		\end{column}
-  		\begin{column}[T]{0.95\textwidth}
-  			$$\quad max \sum_{c\in C}^{} \sum_{q\in Q}^{} y_{cq} g_{cq}  -  \sum_{i\in 	}^{}	 z_i f_i$$
-  			$$\quad \sum_{i\in I}^{} z_i m_i \leq M$$
-  			$$\sum_{c\in C}^{} y_{cq} \leq 1 \quad\forall q \in Q $$
-  			$$y_{cq} \leq z_i \quad\forall c \in C, q \in Q, i \in I_c$$
-  			$$y_{cq}, z_i \in [0,1]$$
-  			$y_{cq} = 1$ if config \emph{c} satisfies query \emph{q}, 0 otherwise\\
-  			$z_i = 1$ if index \emph{i} is built, 0 otherwise
-  		\end{column}
-  	\end{columns}
-  \end{frame}
-  \begin{frame}[fragile]{Mathematical Model}
-
-      \textbf{Objective Function}: the net gain is given by subtracting to the total gain earned by using certain configurations, the indexes building cost. Obviously, we want to maximize that profit. 
-
-      \textbf{Constraints}:
-      \begin{itemize}
-        \item Memory used by indexes cannot exceed M
-        \item Each query can be served at most by 1 configuration
-        \item All indexes of a configuration must be built if it serves at least one query.
-      \end{itemize}
-
-      \textbf{Domain}: the used variables are boolean, so the possible values are \{0, 1\}
-  \end{frame}
-
   \section{Algorithm presentation}
   % ------------------------------------------------------------------------------------------------------------
   %													Algorithm presentation
