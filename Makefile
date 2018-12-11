@@ -1,7 +1,7 @@
 all: 	heuristicAlgorithm.exe
 
 heuristicAlgorithm.exe: heuristicAlgorithm.cpp
-	g++ heuristicAlgorithm.cpp parser.cpp database.cpp -ansi -Wpedantic -Wall -D_REENTRANT -o heuristicAlgorithm.exe
+	g++ heuristicAlgorithm.cpp parser.cpp database.cpp -Wpedantic -Wall -D_REENTRANT -o heuristicAlgorithm.exe
 
 .PHONY:	clean
 
