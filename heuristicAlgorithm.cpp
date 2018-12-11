@@ -18,9 +18,11 @@ int main(int argc, char *argv[]) {
 		return 1;	
 	}
 	
-	Database *db = new Database();
 	int seconds = std::stoi (argv[2]);
-    Parser *parser = new Parser();
+	Database *db = new Database();
+	Parser *parser = new Parser();
+    
     parser->parse(argv[1], db);
+    
     return 0;
 }

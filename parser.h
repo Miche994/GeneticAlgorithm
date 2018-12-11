@@ -3,6 +3,7 @@
 
 #include <regex>
 #include <string>
+#include "database.h"
 
 using namespace std;
 
@@ -10,12 +11,10 @@ class Parser {
 
 public:
 	Parser();
-	void parse(const string filename);
+	void parse(const string filename, Database *db);
 private:
 	string line;
-	regex regDouble;
-	regex regMatrix;
-	regex regSingle;
+	regex myRegex;
 };
 
 #endif

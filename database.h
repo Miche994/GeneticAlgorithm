@@ -17,7 +17,7 @@ public:
 	bool *configurationIndexMatrix;
 	int *indexesCost;
 	int *indexesMemory;
-	bool *configurationGainMatrix;
+	int *configurationGainMatrix;
 };
 
 #endif
