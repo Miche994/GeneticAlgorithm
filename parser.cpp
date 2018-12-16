@@ -7,7 +7,7 @@
 using namespace std;
 
 Parser::Parser() {
-  myRegex = "(\\d+)";
+  this->myRegex = "(\\d+)";
 }
 
 void Parser::parse(const string filename, Database *db) {

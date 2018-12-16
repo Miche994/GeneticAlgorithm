@@ -1,6 +1,7 @@
 #include <iostream>
 #include "parser.h"
 #include "database.h"
+#include "geneticAlgorithm.h"
 
 using namespace std;
 
@@ -21,8 +22,11 @@ int main(int argc, char *argv[]) {
 	int seconds = std::stoi (argv[2]);
 	Database *db = new Database();
 	Parser *parser = new Parser();
-    
+
     parser->parse(argv[1], db);
-    
+    GeneticAlgorithm *algorithm = new GeneticAlgorithm(db, seconds);
+    free(parser);
+    algorithm->run();
+
     return 0;
 }
