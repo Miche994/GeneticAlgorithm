@@ -3,7 +3,6 @@
 
 using namespace std;
 
-
 Database::Database() {
 }
 
