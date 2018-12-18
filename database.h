@@ -14,10 +14,10 @@ public:
 	int nIndexes;
 	int nConfigurations;
 	int totalMemory;
-	bool *configurationIndexMatrix;
+	bool **configurationIndexMatrix;
 	int *indexesCost;
 	int *indexesMemory;
-	int *configurationGainMatrix;
+	int **configurationGainMatrix;
 };
 
 #endif

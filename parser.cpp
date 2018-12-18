@@ -34,20 +34,25 @@ void Parser::parse(const string filename, Database *db) {
 
     //Match and store configurationIndexMatrix
     getline(readFile,line);
-    db->configurationIndexMatrix = (bool*) malloc (db->nIndexes * db->nConfigurations * sizeof(bool));
+    db->configurationIndexMatrix = (bool**) malloc (db->nConfigurations * sizeof(bool*));
     if (db->configurationIndexMatrix == NULL) 
       exit (1);
+    for (int i = 0; i < db->nConfigurations; i++) {
+      db->configurationIndexMatrix[i] = (bool*) malloc (db->nIndexes * sizeof(bool));
+      if (db->configurationIndexMatrix[i] == NULL)
+        exit(1);
+    }
     for(int i = 0; i < db->nConfigurations; i++){
       getline(readFile,line);
-      int index = i * db->nIndexes;
+      int j = 0;
       string::const_iterator searchStart( line.cbegin() );
       while ( std::regex_search( searchStart, line.cend(), sm, myRegex ) ) {
         searchStart = sm.suffix().first;
         if(sm[0] == "1")
-          db->configurationIndexMatrix[index] = true;
+          db->configurationIndexMatrix[i][j] = true;
         else
-          db->configurationIndexMatrix[index] = false;
-        index++;
+          db->configurationIndexMatrix[i][j] = false;
+        j++;
       }
     }
     
@@ -75,20 +80,24 @@ void Parser::parse(const string filename, Database *db) {
 
     //Match and store configurationGainMatrix
     getline(readFile,line);
-    db->configurationGainMatrix = (int*) malloc (db->nIndexes * db->nConfigurations * sizeof(int));
+    db->configurationGainMatrix = (int**) malloc (db->nConfigurations * sizeof(int*));
     if (db->configurationGainMatrix == NULL) 
       exit (1);
+    for (int i = 0; i < db->nConfigurations; i++) {
+      db->configurationGainMatrix[i] = (int*) malloc (db->nIndexes * sizeof(int));
+      if(db->configurationGainMatrix[i] == NULL)
+        exit(1);
+    }
     for(int i = 0; i < db->nConfigurations; i++){
       getline(readFile,line);
-      int index = i * db->nIndexes;
+      int j = 0;
       string::const_iterator searchStart( line.cbegin() );
       while ( std::regex_search( searchStart, line.cend(), sm, myRegex ) ) {
         searchStart = sm.suffix().first;
-        db->configurationGainMatrix[index] = std::stoi(sm[0]);
-        index++;
+        db->configurationGainMatrix[i][j] = std::stoi(sm[0]);
+        j++;
       }
     }
-    //cout << db->toString();
     readFile.close();
   }
   else 

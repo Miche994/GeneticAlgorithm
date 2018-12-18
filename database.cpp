@@ -13,10 +13,10 @@ string Database::toString() {
 		   		"@@|->nConfigurations: " + std::to_string(this->nConfigurations) + "\n"
 		   		"@@|->totalMemory: " + std::to_string(this->totalMemory) + "\n"
 		   		"@@|->configurationIndexMatrix: \n\t";
-	for(int i=0; i<this->nIndexes*this->nConfigurations; i++){
-		s += std::to_string(this->configurationIndexMatrix[i]) + " ";
-		if((i+1)%this->nIndexes == 0 && (i+1) != this->nIndexes*this->nConfigurations)
-			s += "\n\t";
+	for(int i=0; i<this->nConfigurations; i++){
+		for(int j = 0; j < this->nIndexes; j++)
+			s += std::to_string(this->configurationIndexMatrix[i][j]) + " ";
+		s += "\n\t";
 	}
 	
 	s += "\n@@|->indexesCost: \n\t";
@@ -34,10 +34,10 @@ string Database::toString() {
 	}
 	
 	s += "\n@@|->configurationGainMatrix: \n\t";
-	for(int i=0; i<this->nIndexes*this->nConfigurations; i++){
-		s += std::to_string(this->configurationGainMatrix[i]) + " ";
-		if((i+1)%this->nIndexes == 0 && (i+1) != this->nIndexes*this->nConfigurations)
-			s += "\n\t";
+	for(int i=0; i<this->nConfigurations; i++){
+		for (int j = 0; j < this->nIndexes; j++)
+			s += std::to_string(this->configurationGainMatrix[i][j]) + " ";
+		s += "\n\t";
 	}
 	s += "\n";
 	return s;
