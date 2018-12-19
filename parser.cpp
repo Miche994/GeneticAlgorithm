@@ -34,14 +34,9 @@ void Parser::parse(const string filename, Database *db) {
 
     //Match and store configurationIndexMatrix
     getline(readFile,line);
-    db->configurationIndexMatrix = (bool**) malloc (db->nConfigurations * sizeof(bool*));
-    if (db->configurationIndexMatrix == NULL) 
-      exit (1);
-    for (int i = 0; i < db->nConfigurations; i++) {
-      db->configurationIndexMatrix[i] = (bool*) malloc (db->nIndexes * sizeof(bool));
-      if (db->configurationIndexMatrix[i] == NULL)
-        exit(1);
-    }
+    db->configurationIndexMatrix = new bool*[db->nConfigurations];
+    for (int i = 0; i < db->nConfigurations; i++)
+      db->configurationIndexMatrix[i] = new bool[db->nIndexes];
     for(int i = 0; i < db->nConfigurations; i++){
       getline(readFile,line);
       int j = 0;
@@ -58,9 +53,7 @@ void Parser::parse(const string filename, Database *db) {
     
     //Match and store indexesCost
     getline(readFile,line);
-    db->indexesCost = (int*) malloc (db->nIndexes * sizeof(int));
-    if (db->indexesCost == NULL) 
-      exit (1);
+    db->indexesCost = new int[db->nIndexes];
     for(int i = 0; i < db->nIndexes; i++) {
       getline(readFile,line);
       std::regex_search(line, sm, myRegex);
@@ -69,9 +62,7 @@ void Parser::parse(const string filename, Database *db) {
 
     //Match and store indexesMemory
     getline(readFile,line);
-    db->indexesMemory = (int*) malloc (db->nIndexes * sizeof(int));
-    if (db->indexesMemory == NULL) 
-      exit (1);
+    db->indexesMemory = new int[db->nIndexes * sizeof(int)];
     for(int i = 0; i < db->nIndexes; i++) {
       getline(readFile,line);
       std::regex_search(line, sm, myRegex);
@@ -80,14 +71,9 @@ void Parser::parse(const string filename, Database *db) {
 
     //Match and store configurationGainMatrix
     getline(readFile,line);
-    db->configurationGainMatrix = (int**) malloc (db->nConfigurations * sizeof(int*));
-    if (db->configurationGainMatrix == NULL) 
-      exit (1);
-    for (int i = 0; i < db->nConfigurations; i++) {
-      db->configurationGainMatrix[i] = (int*) malloc (db->nIndexes * sizeof(int));
-      if(db->configurationGainMatrix[i] == NULL)
-        exit(1);
-    }
+    db->configurationGainMatrix = new int*[db->nConfigurations];
+    for (int i = 0; i < db->nConfigurations; i++)
+      db->configurationGainMatrix[i] = new int[db->nIndexes];
     for(int i = 0; i < db->nConfigurations; i++){
       getline(readFile,line);
       int j = 0;

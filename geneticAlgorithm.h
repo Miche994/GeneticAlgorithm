@@ -20,6 +20,7 @@ private:
 	int *fitnessVector;
 	int bestObjFunc;
 	int populationSize;
+	int parentSize;
 	int timeout;
 	int fitnessElaboration(bool *vectorToEvaluate);	 //compute the fitness value of the solution
 	void populationGeneration(); //fills the **population matrix && fills *fitnessVector
@@ -27,6 +28,7 @@ private:
 	void childrenGeneration();	 //fills the **children matrix
 	void localSearch();			 //improves **children and call fitnessElaboration() of new solutions
 	void populationUpdate();	 //updates **population by taking the best children && fills (updates) *fitnessVector
+	bool isFeasibleMemory(bool *vectorToEvaluate);
 };
 
 #endif
