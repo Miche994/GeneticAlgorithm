@@ -11,7 +11,7 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	this->timeout = seconds;
 	//3.85 is the best fit to make the popSize increase considering all the solutionSet
 	this->populationSize = pow(2,db->nIndexes) * pow(10,-db->nIndexes/3.85); 
-	this->parentSize = this->populationSize * 3 / 4;
+	this->parentSize = this->populationSize * 3 / 4 == 0 ? 1 : this->populationSize * 3 / 4;
 	this->population = new bool*[this->populationSize];
 	this->children = new bool*[this->parentSize];
 	for (int i = 0; i < populationSize; i++) {
@@ -34,9 +34,10 @@ void GeneticAlgorithm::run() {
 		childrenGeneration();
 		//localSearch();
 		populationUpdate();
+		//storeResult();
 		cout << "Best Objective function: " << this->bestObjFunc << "\n";
 		cout << "Best solution:\n";
-		for(int i = 0; i<this->instance->nIndexes;i++)
+		for(int i = 0; i < this->instance->nIndexes; i++)
 			cout << this->bestSolution[i] << " ";
 		cout << "\n";
 	}
@@ -44,50 +45,106 @@ void GeneticAlgorithm::run() {
 }
 
 bool GeneticAlgorithm::isFeasibleMemory(bool *vectorToEvaluate){
-	int costInMem=0;
+	int costInMem = 0;
 
     for(int i = 0; i < this->instance->nIndexes; i++)
 		if(vectorToEvaluate[i] == true)
-       		costInMem=costInMem+this->instance->indexesMemory[i];
-	if (costInMem>this->instance->totalMemory)
+       		costInMem += this->instance->indexesMemory[i];
+	if (costInMem > this->instance->totalMemory)
 		return false;
 	return true;
 }
 
-//COMPLETED by computing objective function
-int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
-	int vecSize = instance->nConfigurations;
-    bool *vectConfigActive = new bool[vecSize];
-    for(int i=0;i<instance->nConfigurations;i++)
-        vectConfigActive[i]=1;
-   
-    for(int i=0;i<instance->nIndexes;i++){
-        if(vectorToEvaluate[i]==0){
-            for(int j=0;j<instance->nConfigurations;j++){
-                if(vectConfigActive[j]==1){
-                    if(instance->configurationIndexMatrix[j][i]==1)
-						vectConfigActive[j]=0;
+bool* GeneticAlgorithm::getActiveConfig(bool *vectorToEvaluate){
+	bool *vectorConfigActive = new bool[this->instance->nConfigurations];
+	for(int i = 0; i < this->instance->nConfigurations; i++)
+        vectorConfigActive[i] = 1;
+
+	for(int i = 0; i < this->instance->nIndexes; i++){
+        if(vectorToEvaluate[i] == 0){
+            for(int j = 0; j < this->instance->nConfigurations; j++){
+                if(vectorConfigActive[j] == 1){
+                    if(this->instance->configurationIndexMatrix[j][i] == 1)
+						vectorConfigActive[j] = 0;
                 }
             }
         }
     }
+	return vectorConfigActive;
+}
 
-    int totalQueryGain=0;
-    for(int i=0;i<instance->nQueries;i++){
-		int maxQueryGain=0;
-        for(int j=0;j<instance->nConfigurations;j++){
-           if(vectConfigActive[j]==1){
-			if(instance->configurationGainMatrix[j][i]>maxQueryGain)
-                maxQueryGain=instance->configurationGainMatrix[j][i];
+void GeneticAlgorithm::storeResult(){
+	bool *vectConfigActive = this->getActiveConfig(this->bestSolution);
+	int *configQuery = new int[this->instance->nQueries];
+	int bestConfig;
+
+	//Compute best configs
+	for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++){
+		bestConfig = 0;
+		for(int j = 0; j < this->instance->nConfigurations; j++){
+           	if(vectConfigActive[j] == 1){
+            	if(this->instance->configurationGainMatrix[j][i] > maxQueryGain){
+                	maxQueryGain = this->instance->configurationGainMatrix[j][i];
+                	bestConfig = j;
+                	
+	    		}
+          	}
+        }
+        configQuery[i] = bestConfig;
+	}
+
+	//Storing result on file
+	cout << "BEST_SOL: " << this->bestObjFunc << "\n";
+	cout << "MATRIX_CONFIG_QUERY:\n"; 
+	for(int i = 0; i < this->instance->nConfigurations; i++){
+		for(int j = 0; j < this->instance->nQueries; j++)
+			if(j == configQuery[i])
+				cout << "1 ";
+			else
+				cout << "0 ";
+		cout << "\n";
+	}
+
+	delete [] vectConfigActive;
+	delete [] configQuery;
+	return;
+}
+
+//COMPLETED by computing objective function
+int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
+	bool *vectConfigActive = this->getActiveConfig(vectorToEvaluate);
+	int buildIndexCost = 0;
+	int totalQueryGain = 0;
+
+	//Computing query gain (g_cq)
+    for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++, maxQueryGain = 0){
+        for(int j = 0; j < this->instance->nConfigurations; j++){
+           if(vectConfigActive[j] == 1){
+			if(this->instance->configurationGainMatrix[j][i] > maxQueryGain)
+                maxQueryGain = this->instance->configurationGainMatrix[j][i];
           }
         }
-
-		totalQueryGain+=maxQueryGain;
+		totalQueryGain += maxQueryGain;
     }
 
-    int buildIndexCost=0;
-    for(int i=0;i<instance->nIndexes;i++){
-		if(vectorToEvaluate[i]==true){buildIndexCost=buildIndexCost+instance->indexesCost[i];}
+	//Optimizing vectToEvaluate	
+	
+	for(int i = 0; i < this->instance->nIndexes; i++)
+		if(vectorToEvaluate[i] == 1){
+			int j = 0;
+			vectorToEvaluate[i] = 0;
+			while(j < this->instance->nConfigurations && vectorToEvaluate[i] == 0){
+				if(vectConfigActive[j] == 1 && this->instance->configurationIndexMatrix[j][i] == 1)
+					vectorToEvaluate[i] = 1;
+				j++;
+			}
+		}
+
+	//Computing indexes building cost
+    for(int i = 0; i < this->instance->nIndexes; i++){
+		if(vectorToEvaluate[i] == true){
+			buildIndexCost += this->instance->indexesCost[i];
+		}
 	}
 
 	delete [] vectConfigActive;
@@ -126,8 +183,8 @@ void GeneticAlgorithm::solutionSetSelection() {
 	while(selectedParents < parentSize) {
 		i = 0;
 		currentSum = popFitness[0];
-		randomValue = rand() % sumFitness;
-		while(currentSum < randomValue && currentSum <= sumFitness) {
+		randomValue = rand() % abs(sumFitness);
+		while(currentSum < randomValue && currentSum <= sumFitness && i < this->populationSize) {
 			i++;
 			currentSum += popFitness[i];
 		}
@@ -160,11 +217,6 @@ void GeneticAlgorithm::localSearch() {
 
 //COMPLETED by switching parents with children 
 void GeneticAlgorithm::populationUpdate() {
-	/*
-	bool **tmp = this->population;
-	this->population = this->children;
-	this->children = tmp;
-	*/
 	bool *tmp ;
 	for(int i = 0, j = 0; i < this->populationSize; i++)
 		if(this->parents[i] == true){

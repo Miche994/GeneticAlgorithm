@@ -35,7 +35,7 @@ string Database::toString() {
 	
 	s += "\n@@|->configurationGainMatrix: \n\t";
 	for(int i=0; i<this->nConfigurations; i++){
-		for (int j = 0; j < this->nIndexes; j++)
+		for (int j = 0; j < this->nQueries; j++)
 			s += std::to_string(this->configurationGainMatrix[i][j]) + " ";
 		s += "\n\t";
 	}
