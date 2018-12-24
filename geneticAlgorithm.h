@@ -13,7 +13,6 @@ public:
 	void run();
 private:
 	Database *instance;	
-	bool **children;
 	bool **population;
 	bool *bestSolution;
 	bool *parents;		//parents[populationSize]
@@ -27,7 +26,6 @@ private:
 	void solutionSetSelection(); //fills the *parents vector
 	void childrenGeneration();	 //fills the **children matrix
 	void localSearch();			 //improves **children and call fitnessElaboration() of new solutions
-	void populationUpdate();	 //updates **population by taking the best children && fills (updates) *fitnessVector
 	bool isFeasibleMemory(bool *vectorToEvaluate);
 	bool* getActiveConfig(bool *vectorToEvaluate);
 	void storeResult();
