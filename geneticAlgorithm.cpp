@@ -22,6 +22,7 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	this->fitnessVector = new int[db->nIndexes];
 	this->bestSolution = new bool[db->nIndexes];
 	this->bestObjFunc = 0;
+	this->toPrint = true;
 }
 
 void GeneticAlgorithm::run() {
@@ -32,15 +33,8 @@ void GeneticAlgorithm::run() {
 	while(time(NULL) - startTime < this->timeout) {
 		solutionSetSelection();
 		childrenGeneration();
-		//localSearch();
-		storeResult();
-		/*
-		cout << "Best Objective function: " << this->bestObjFunc << "\n";
-		cout << "Best solution: ";
-		for(int i = 0; i < this->instance->nIndexes; i++)
-			cout << this->bestSolution[i] << " ";
-		cout << "\n";
-		*/
+		if(this->toPrint == true)
+			storeResult();
 	}
 	cout << "Tempo di fine : " << time(NULL) << "\n";
 }
@@ -82,6 +76,7 @@ void GeneticAlgorithm::storeResult(){
 	//Compute best configs
 	for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++){
 		bestConfig = 0;
+		maxQueryGain = 0;
 		for(int j = 0; j < this->instance->nConfigurations; j++){
            	if(vectConfigActive[j] == 1){
             	if(this->instance->configurationGainMatrix[j][i] > maxQueryGain){
@@ -107,6 +102,11 @@ void GeneticAlgorithm::storeResult(){
 
   	myfile.close();
 
+  	cout << "BestObjFunc: " << this->bestObjFunc << "\n";
+  	for(int i = 0; i < this->instance->nIndexes; i++)
+  		cout << this->bestSolution[i] << " ";
+  	cout << "\n";
+  	this->toPrint = false;
 	delete [] vectConfigActive;
 	delete [] configQuery;
 	return;
@@ -170,6 +170,7 @@ void GeneticAlgorithm::solutionSetSelection() {
 		sumFitness += currentFitness;
 		popFitness[i] = currentFitness; //We could store sqrt
 		if(currentFitness > this->bestObjFunc && isFeasibleMemory(this->population[i])){
+			toPrint = true;
 			this->bestObjFunc = currentFitness;
 			for (int j = 0; j < this->instance->nIndexes; j++)
 				this->bestSolution[j] = this->population[i][j];	

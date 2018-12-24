@@ -17,6 +17,7 @@ private:
 	bool *bestSolution;
 	bool *parents;		//parents[populationSize]
 	int *fitnessVector;
+	bool toPrint;
 	int bestObjFunc;
 	int populationSize;
 	int parentSize;
