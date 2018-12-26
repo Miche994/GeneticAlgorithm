@@ -122,7 +122,7 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
     for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++, maxQueryGain = 0){
         for(int j = 0; j < this->instance->nConfigurations; j++){
            if(vectConfigActive[j] == 1){
-			if(this->instance->configurationGainMatrix[j][i] > maxQueryGain)
+			if(this->instance->configurationGainMatrix[j][i] >= maxQueryGain)
                 maxQueryGain = this->instance->configurationGainMatrix[j][i];
           }
         }
