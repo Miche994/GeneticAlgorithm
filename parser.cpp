@@ -73,7 +73,7 @@ void Parser::parse(const string filename, Database *db) {
     getline(readFile,line);
     db->configurationGainMatrix = new int*[db->nConfigurations];
     for (int i = 0; i < db->nConfigurations; i++)
-      db->configurationGainMatrix[i] = new int[db->nIndexes];
+      db->configurationGainMatrix[i] = new int[db->nQueries];
     for(int i = 0; i < db->nConfigurations; i++){
       getline(readFile,line);
       int j = 0;
