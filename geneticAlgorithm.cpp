@@ -1,5 +1,4 @@
 #include <iostream>
-#include <fstream>
 #include <time.h>
 #include <math.h>
 #include "geneticAlgorithm.h"
@@ -14,12 +13,13 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	this->populationSize = pow(2,db->nIndexes) * pow(10,-db->nIndexes/3.85); 
 	if(this->populationSize < 4)
 		this->populationSize = pow(2,db->nIndexes);
+	else if (this->populationSize > 1000)
+		this->populationSize = 1000;
 	this->parentSize = this->populationSize * 3 / 4;
 	this->population = new bool*[this->populationSize];
 	for (int i = 0; i < populationSize; i++) 
 		this->population[i] = new bool[db->nIndexes];
 	this->parents = new bool[this->populationSize];
-	this->fitnessVector = new int[db->nIndexes];
 	this->bestSolution = new bool[db->nIndexes];
 	this->bestObjFunc = 0;
 	this->toPrint = true;
@@ -33,7 +33,7 @@ void GeneticAlgorithm::run() {
 	while(time(NULL) - startTime < this->timeout) {
 		solutionSetSelection();
 		childrenGeneration();
-		if(this->toPrint == true)
+		if(this->toPrint == true) 
 			storeResult();
 	}
 	cout << "Tempo di fine : " << time(NULL) << "\n";
@@ -53,14 +53,14 @@ bool GeneticAlgorithm::isFeasibleMemory(bool *vectorToEvaluate){
 bool* GeneticAlgorithm::getActiveConfig(bool *vectorToEvaluate){
 	bool *vectorConfigActive = new bool[this->instance->nConfigurations];
 	for(int i = 0; i < this->instance->nConfigurations; i++)
-        vectorConfigActive[i] = 1;
+        vectorConfigActive[i] = true;
 
 	for(int i = 0; i < this->instance->nIndexes; i++){
-        if(vectorToEvaluate[i] == 0){
+        if(vectorToEvaluate[i] == false){
             for(int j = 0; j < this->instance->nConfigurations; j++){
-                if(vectorConfigActive[j] == 1){
-                    if(this->instance->configurationIndexMatrix[j][i] == 1)
-						vectorConfigActive[j] = 0;
+                if(vectorConfigActive[j] == true){
+                    if(this->instance->configurationIndexMatrix[j][i] == true)
+						vectorConfigActive[j] = false;
                 }
             }
         }
@@ -88,19 +88,17 @@ void GeneticAlgorithm::storeResult(){
         configQuery[i] = bestConfig;
 	}
 
-	ofstream myfile;
-  	myfile.open ("output.sol");
+  	this->myfile.open ("output.sol");
 	//Storing result on file
 	for(int i = 0; i < this->instance->nConfigurations; i++){
 		for(int j = 0; j < this->instance->nQueries; j++)
 			if(i == configQuery[j])
-				myfile << "1 ";
+				this->myfile << "1 ";
 			else
-				myfile << "0 ";
-		myfile << "\n";
+				this->myfile << "0 ";
+		this->myfile << "\n";
 	}
-
-  	myfile.close();
+  	this->myfile.close();
 
   	cout << "BestObjFunc: " << this->bestObjFunc << "\n";
   	for(int i = 0; i < this->instance->nIndexes; i++)
@@ -119,9 +117,10 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 	int totalQueryGain = 0;
 
 	//Computing query gain (g_cq)
-    for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++, maxQueryGain = 0){
+    for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++){
+    	maxQueryGain = 0;
         for(int j = 0; j < this->instance->nConfigurations; j++){
-           if(vectConfigActive[j] == 1){
+           if(vectConfigActive[j] == true){
 			if(this->instance->configurationGainMatrix[j][i] > maxQueryGain)
                 maxQueryGain = this->instance->configurationGainMatrix[j][i];
           }
@@ -131,12 +130,12 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 
 	//Optimizing vectToEvaluate
 	for(int i = 0; i < this->instance->nIndexes; i++){
-		if(vectorToEvaluate[i] == 1){
+		if(vectorToEvaluate[i] == true){
 			int j = 0;
-			vectorToEvaluate[i] = 0;
-			while(j < this->instance->nConfigurations && vectorToEvaluate[i] == 0){
-				if(vectConfigActive[j] == 1 && this->instance->configurationIndexMatrix[j][i] == 1)
-					vectorToEvaluate[i] = 1;
+			vectorToEvaluate[i] = false;
+			while(j < this->instance->nConfigurations && vectorToEvaluate[i] == false){
+				if(vectConfigActive[j] == true && this->instance->configurationIndexMatrix[j][i] == true)
+					vectorToEvaluate[i] = true;
 				j++;
 			}
 		}
@@ -213,7 +212,7 @@ void GeneticAlgorithm::solutionSetSelection() {
 }
 
 void GeneticAlgorithm::childrenGeneration() {
-	int method = rand() % 2;
+	int method = rand() % 3;
 	switch(method) {
 		//Mutation
 		case 0 : {
@@ -226,12 +225,36 @@ void GeneticAlgorithm::childrenGeneration() {
 			}
 			break;
 		}
-		/*Cross
+		//Cross
 		case 1 : {
+			for (int i = 0, j = 0; i < this->populationSize; i++){
+				//finding the 1st parent
+				if(this->parents[i] == true){
+					for (j = i + 1; j < this->populationSize; j++){
+						//finding the 2nd one
+						if(this->parents[j] == true){
+							//Swapping
+							bool tmp;
+							for(int k = rand() % this->instance->nIndexes; k < this->instance->nIndexes; k++){
+								tmp = this->population[i][k];
+								this->population[i][k] = this->population[j][k];
+								this->population[j][k] = tmp;
+							}
+							i = j + 1;
+							break;
+						}
+					}
+					//there's an odd parent
+					if (j >= this->populationSize){
+						int bitToChange = rand() % this->instance->nIndexes;
+						this->population[i][bitToChange] = !this->population[i][bitToChange];
+					}
+				}
+			}
 			break;
-		}*/
+		}
 		//Inversion
-		case 1 : {
+		case 2 : {
 			int point1, point2, swapPt;
 			bool swapGen;
 			do {
