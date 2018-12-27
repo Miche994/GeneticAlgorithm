@@ -2,6 +2,7 @@
 #define __GENETIC__
 
 #include <string>
+#include <fstream>
 #include "database.h"
 
 using namespace std;
@@ -16,12 +17,12 @@ private:
 	bool **population;
 	bool *bestSolution;
 	bool *parents;		//parents[populationSize]
-	int *fitnessVector;
 	bool toPrint;
 	int bestObjFunc;
 	int populationSize;
 	int parentSize;
 	int timeout;
+	ofstream myfile;
 	int fitnessElaboration(bool *vectorToEvaluate);	 //compute the fitness value of the solution
 	void populationGeneration(); //fills the **population matrix && fills *fitnessVector
 	void solutionSetSelection(); //fills the *parents vector
