@@ -10,11 +10,8 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	this->instance = db;
 	this->timeout = seconds;
 	//3.85 is the best fit to make the popSize increase considering all the solutionSet
-	this->populationSize = pow(2,db->nIndexes) * pow(10,-db->nIndexes/3.85); 
-	if(this->populationSize < 4)
-		this->populationSize = pow(2,db->nIndexes);
-	else if (this->populationSize > 1000)
-		this->populationSize = 1000;
+	//this->populationSize = pow(2,db->nIndexes) * pow(10,-db->nIndexes/3.85) * 300; 	
+	this->populationSize = db->nIndexes * 300;
 	this->parentSize = this->populationSize * 3 / 4;
 	this->population = new bool*[this->populationSize];
 	for (int i = 0; i < populationSize; i++) 
@@ -32,7 +29,7 @@ void GeneticAlgorithm::run() {
     populationGeneration();
 	while(time(NULL) - startTime < this->timeout) {
 		solutionSetSelection();
-		childrenGeneration();
+		childrenGeneration(startTime);
 		if(this->toPrint == true) 
 			storeResult();
 	}
@@ -164,6 +161,7 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 		if(vectorToEvaluate[i] == true)
 			buildIndexCost += this->instance->indexesCost[i];
 
+	delete [] vectConfigwork;
 	delete [] vectConfigActive;
 	return (totalQueryGain-buildIndexCost);
 }
@@ -198,8 +196,9 @@ void GeneticAlgorithm::solutionSetSelection() {
 		this->parents[i] = false;
 
 	//Roulette untill it fails 15 times sequentially
+	
 	while(selectedParents < parentSize) {
-		if(counter++ > 15) 
+		if(counter++ > 30)
 			break;
 		i = 0;
 		currentSum = popFitness[0];
@@ -229,16 +228,27 @@ void GeneticAlgorithm::solutionSetSelection() {
 	return;
 }
 
-void GeneticAlgorithm::childrenGeneration() {
-	int method = rand() % 3;
+void GeneticAlgorithm::childrenGeneration(int startTime) {
+	int rangeMutation = 2, rangeCross = 6, maxRange = 10;
+	if(time(NULL) / (startTime + this->timeout) < 0.5){
+		rangeMutation = 8;
+		rangeCross = 9;
+	}
+	int method = rand() % maxRange;
+	if(method <= rangeMutation) method = 0;
+	else if (method <= rangeCross) method = 1;
+	else method = 2;
+
 	switch(method) {
 		//Mutation
 		case 0 : {
-			int bitToChange;
+			int bitToChange1, bitToChange2;
 			for (int i = 0; i < this->populationSize; i++){
 				if(this->parents[i] == true){
-					bitToChange = rand() % this->instance->nIndexes;
-					this->population[i][bitToChange] = !this->population[i][bitToChange];
+					bitToChange1 = rand() % this->instance->nIndexes;
+					bitToChange2 = rand() % this->instance->nIndexes;
+					this->population[i][bitToChange1] = !this->population[i][bitToChange1];
+					this->population[i][bitToChange2] = !this->population[i][bitToChange2];
 				}
 			}
 			break;
@@ -273,24 +283,18 @@ void GeneticAlgorithm::childrenGeneration() {
 		}
 		//Inversion
 		case 2 : {
-			int point1, point2, swapPt;
+			int point1, length = this->instance->nIndexes * 0.1;
 			bool swapGen;
 			do {
 				point1 = rand() % this->instance->nIndexes;
-				point2 = rand() % this->instance->nIndexes; 
-			} while (point1 == point2 || abs(point1-point2) < 2);
-			if(point1 > point2){
-				swapPt = point1;
-				point1 = point2;
-				point2 = swapPt;
-			}
+			} while (point1 + length < this->instance->nIndexes);
 			//Updating
 			for(int i = 0; i < this->populationSize; i++){
 				if(this->parents[i] == true){
-					for(int k = 0; point1 + k < point2 - k; k++){
-						swapGen = this->population[i][k + point1];
-						this->population[i][point1 + k] = this->population[i][point2 - k];
-						this->population[i][point2 - k] = swapGen;
+					for(int k = point1, j = point1 + length; k <= point1 + length; k++, j--){
+						swapGen = this->population[i][k];
+						this->population[i][k] = this->population[i][j];
+						this->population[i][j] = swapGen;
 					}
 				}
 			}

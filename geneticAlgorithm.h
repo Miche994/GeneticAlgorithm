@@ -26,7 +26,7 @@ private:
 	int fitnessElaboration(bool *vectorToEvaluate);	 //compute the fitness value of the solution
 	void populationGeneration(); //fills the **population matrix && fills *fitnessVector
 	void solutionSetSelection(); //fills the *parents vector
-	void childrenGeneration();	 //fills the **children matrix
+	void childrenGeneration(int startTime);	 //fills the **children matrix
 	void localSearch();			 //improves **children and call fitnessElaboration() of new solutions
 	bool isFeasibleMemory(bool *vectorToEvaluate);
 	bool* getActiveConfig(bool *vectorToEvaluate);
