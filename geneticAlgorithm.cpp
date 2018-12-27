@@ -117,7 +117,7 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 	int totalQueryGain = 0;
 
 	//Computing query gain (g_cq)
-    for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++){
+    /*for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++){
     	maxQueryGain = 0;
         for(int j = 0; j < this->instance->nConfigurations; j++){
            if(vectConfigActive[j] == true){
@@ -126,7 +126,25 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
           }
         }
 		totalQueryGain += maxQueryGain;
-    }
+    }*/
+
+    bool *vectConfigwork=new bool[instance->nConfigurations+1];
+    for(int j = 0; j < this->instance->nConfigurations+1; j++)
+		vectConfigwork[j]=false;
+    int bestconfig=instance->nConfigurations+1;
+	//Computing query gain (g_cq)
+    for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++, maxQueryGain = 0){
+        for(int j = 0; j < this->instance->nConfigurations; j++){
+           if(vectConfigActive[j] == 1){
+				if(this->instance->configurationGainMatrix[j][i] >= maxQueryGain){///////////////////////
+                maxQueryGain = this->instance->configurationGainMatrix[j][i];
+                bestconfig=j;
+			}
+		}
+	}
+	    vectConfigwork[bestconfig]=true;
+		totalQueryGain += maxQueryGain;
+	}
 
 	//Optimizing vectToEvaluate
 	for(int i = 0; i < this->instance->nIndexes; i++){
@@ -134,7 +152,7 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 			int j = 0;
 			vectorToEvaluate[i] = false;
 			while(j < this->instance->nConfigurations && vectorToEvaluate[i] == false){
-				if(vectConfigActive[j] == true && this->instance->configurationIndexMatrix[j][i] == true)
+				if(vectConfigwork[j] == true && this->instance->configurationIndexMatrix[j][i] == true)
 					vectorToEvaluate[i] = true;
 				j++;
 			}
