@@ -10,9 +10,11 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	this->instance = db;
 	this->timeout = seconds;
 	//3.85 is the best fit to make the popSize increase considering all the solutionSet
-	//this->populationSize = pow(2,db->nIndexes) * pow(10,-db->nIndexes/3.85) * 300; 	
-	this->populationSize = db->nIndexes * 300;
-	this->parentSize = this->populationSize * 3 / 4;
+	//this->populationSize = pow(2,db->nIndexes) * pow(10,-db->nIndexes/3.85) * 100; 	
+	this->populationSize = db->nIndexes * 100;
+	cout <<"Population size:"<< this->populationSize << "\n";
+	
+	this->parentSize = this->populationSize * 4 / 5;
 	this->population = new bool*[this->populationSize];
 	for (int i = 0; i < populationSize; i++) 
 		this->population[i] = new bool[db->nIndexes];
@@ -182,8 +184,8 @@ void GeneticAlgorithm::solutionSetSelection() {
 
 	for(i = 0; i < this->populationSize; i++) {
 		currentFitness = fitnessElaboration(this->population[i]);
-		sumFitness += currentFitness;
-		popFitness[i] = currentFitness; //We could store sqrt
+		sumFitness += (currentFitness);
+		popFitness[i] = (currentFitness); //We could store sqrt
 		if(currentFitness > this->bestObjFunc && isFeasibleMemory(this->population[i])){
 			toPrint = true;
 			this->bestObjFunc = currentFitness;
@@ -196,10 +198,12 @@ void GeneticAlgorithm::solutionSetSelection() {
 		this->parents[i] = false;
 
 	//Roulette untill it fails 15 times sequentially
-	
-	while(selectedParents < parentSize) {
-		if(counter++ > 30)
+	/*while (selectedParents < parentSize) {
+		if (counter++ > 30){
+			cout << "Roulette failed \n";
 			break;
+	}
+			
 		i = 0;
 		currentSum = popFitness[0];
 		randomValue = rand() % (sumFitness+1);
@@ -212,7 +216,8 @@ void GeneticAlgorithm::solutionSetSelection() {
 			selectedParents += 1;
 			counter = 0;
 		}
-	}
+	}*/
+
 	//Selection from a random point of the remaining parents
 	randomValue = rand()%(this->populationSize-this->parentSize);
 	while(selectedParents < this->parentSize) {
@@ -231,8 +236,8 @@ void GeneticAlgorithm::solutionSetSelection() {
 void GeneticAlgorithm::childrenGeneration(int startTime) {
 	int rangeMutation = 2, rangeCross = 6, maxRange = 10;
 	if(time(NULL) / (startTime + this->timeout) < 0.5){
-		rangeMutation = 8;
-		rangeCross = 9;
+		rangeMutation = 7;
+		rangeCross = 8;
 	}
 	int method = rand() % maxRange;
 	if(method <= rangeMutation) method = 0;
@@ -242,6 +247,7 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 	switch(method) {
 		//Mutation
 		case 0 : {
+					 cout << "Mutation \n";
 			int bitToChange1, bitToChange2;
 			for (int i = 0; i < this->populationSize; i++){
 				if(this->parents[i] == true){
@@ -250,11 +256,15 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 					this->population[i][bitToChange1] = !this->population[i][bitToChange1];
 					this->population[i][bitToChange2] = !this->population[i][bitToChange2];
 				}
+				/*else
+					for (int j = 0; j < this->instance->nIndexes; j++)
+						this->population[i][j] = this->bestSolution[j];*/
 			}
 			break;
 		}
 		//Cross
 		case 1 : {
+					 cout << "Cross over \n";
 			for (int i = 0, j = 0; i < this->populationSize; i++){
 				//finding the 1st parent
 				if(this->parents[i] == true){
@@ -278,11 +288,15 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 						this->population[i][bitToChange] = !this->population[i][bitToChange];
 					}
 				}
+				else
+					for (int j = 0; j < this->instance->nIndexes; j++)
+						this->population[i][j] = this->bestSolution[j];
 			}
 			break;
 		}
 		//Inversion
 		case 2 : {
+					 cout << "Inversion \n";
 			int point1, length = this->instance->nIndexes * 0.1;
 			bool swapGen;
 			do {
@@ -297,6 +311,9 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 						this->population[i][j] = swapGen;
 					}
 				}
+				else
+					for (int j = 0; j < this->instance->nIndexes; j++)
+						this->population[i][j] = this->bestSolution[j];
 			}
 			break;
 		}
