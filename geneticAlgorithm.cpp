@@ -11,8 +11,8 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	this->timeout = seconds;
 	//3.85 is the best fit to make the popSize increase considering all the solutionSet
 	//this->populationSize = pow(2,db->nIndexes) * pow(10,-db->nIndexes/3.85) * 300; 	
-	this->populationSize = db->nIndexes * 300;
-	this->parentSize = this->populationSize * 3 / 4;
+	this->populationSize = db->nIndexes * 10;
+	this->parentSize = this->populationSize * 7 / 8;
 	this->population = new bool*[this->populationSize];
 	for (int i = 0; i < populationSize; i++) 
 		this->population[i] = new bool[db->nIndexes];
@@ -75,7 +75,7 @@ void GeneticAlgorithm::storeResult(){
 		bestConfig = -1;
 		maxQueryGain = 0;
 		for(int j = 0; j < this->instance->nConfigurations; j++){
-           	if(vectConfigActive[j] == 1){
+           	if(vectConfigActive[j] == true){
             	if(this->instance->configurationGainMatrix[j][i] >= maxQueryGain){
                 	maxQueryGain = this->instance->configurationGainMatrix[j][i];
                 	bestConfig = j;
@@ -110,36 +110,25 @@ void GeneticAlgorithm::storeResult(){
 //COMPLETED by computing objective function
 int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 	bool *vectConfigActive = this->getActiveConfig(vectorToEvaluate);
+	bool *vectConfigWork=new bool[instance->nConfigurations+1];
+	int bestconfig=instance->nConfigurations+1;
 	int buildIndexCost = 0;
 	int totalQueryGain = 0;
-
-	//Computing query gain (g_cq)
-    /*for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++){
-    	maxQueryGain = 0;
-        for(int j = 0; j < this->instance->nConfigurations; j++){
-           if(vectConfigActive[j] == true){
-			if(this->instance->configurationGainMatrix[j][i] > maxQueryGain)
-                maxQueryGain = this->instance->configurationGainMatrix[j][i];
-          }
-        }
-		totalQueryGain += maxQueryGain;
-    }*/
-
-    bool *vectConfigwork=new bool[instance->nConfigurations+1];
+    
     for(int j = 0; j < this->instance->nConfigurations+1; j++)
-		vectConfigwork[j]=false;
-    int bestconfig=instance->nConfigurations+1;
+		vectConfigWork[j]=false;
+
 	//Computing query gain (g_cq)
     for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++, maxQueryGain = 0){
         for(int j = 0; j < this->instance->nConfigurations; j++){
-           if(vectConfigActive[j] == 1){
-				if(this->instance->configurationGainMatrix[j][i] >= maxQueryGain){///////////////////////
+           if(vectConfigActive[j] == true){
+				if(this->instance->configurationGainMatrix[j][i] >= maxQueryGain){
                 maxQueryGain = this->instance->configurationGainMatrix[j][i];
                 bestconfig=j;
+				}
 			}
 		}
-	}
-	    vectConfigwork[bestconfig]=true;
+	    vectConfigWork[bestconfig]=true;
 		totalQueryGain += maxQueryGain;
 	}
 
@@ -149,7 +138,7 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 			int j = 0;
 			vectorToEvaluate[i] = false;
 			while(j < this->instance->nConfigurations && vectorToEvaluate[i] == false){
-				if(vectConfigwork[j] == true && this->instance->configurationIndexMatrix[j][i] == true)
+				if(vectConfigWork[j] == true && this->instance->configurationIndexMatrix[j][i] == true)
 					vectorToEvaluate[i] = true;
 				j++;
 			}
@@ -161,7 +150,7 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 		if(vectorToEvaluate[i] == true)
 			buildIndexCost += this->instance->indexesCost[i];
 
-	delete [] vectConfigwork;
+	delete [] vectConfigWork;
 	delete [] vectConfigActive;
 	return (totalQueryGain-buildIndexCost);
 }
@@ -196,9 +185,8 @@ void GeneticAlgorithm::solutionSetSelection() {
 		this->parents[i] = false;
 
 	//Roulette untill it fails 15 times sequentially
-	
 	while(selectedParents < parentSize) {
-		if(counter++ > 30)
+		if(counter++ > 10)
 			break;
 		i = 0;
 		currentSum = popFitness[0];
@@ -230,11 +218,12 @@ void GeneticAlgorithm::solutionSetSelection() {
 
 void GeneticAlgorithm::childrenGeneration(int startTime) {
 	int rangeMutation = 2, rangeCross = 6, maxRange = 10;
+	int method = rand() % maxRange;
 	if(time(NULL) / (startTime + this->timeout) < 0.5){
 		rangeMutation = 8;
 		rangeCross = 9;
 	}
-	int method = rand() % maxRange;
+
 	if(method <= rangeMutation) method = 0;
 	else if (method <= rangeCross) method = 1;
 	else method = 2;
@@ -249,6 +238,9 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 					bitToChange2 = rand() % this->instance->nIndexes;
 					this->population[i][bitToChange1] = !this->population[i][bitToChange1];
 					this->population[i][bitToChange2] = !this->population[i][bitToChange2];
+				} else {
+                    for (int j = 0; j < this->instance->nIndexes; j++)
+				      this->population[i][j]=this->bestSolution[j] ;
 				}
 			}
 			break;
@@ -256,12 +248,9 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 		//Cross
 		case 1 : {
 			for (int i = 0, j = 0; i < this->populationSize; i++){
-				//finding the 1st parent
 				if(this->parents[i] == true){
 					for (j = i + 1; j < this->populationSize; j++){
-						//finding the 2nd one
 						if(this->parents[j] == true){
-							//Swapping
 							bool tmp;
 							for(int k = rand() % this->instance->nIndexes; k < this->instance->nIndexes; k++){
 								tmp = this->population[i][k];
@@ -272,11 +261,13 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 							break;
 						}
 					}
-					//there's an odd parent
 					if (j >= this->populationSize){
 						int bitToChange = rand() % this->instance->nIndexes;
 						this->population[i][bitToChange] = !this->population[i][bitToChange];
 					}
+				} else {
+                    for (int j = 0; j < this->instance->nIndexes; j++)
+				      this->population[i][j]=this->bestSolution[j] ;
 				}
 			}
 			break;
@@ -288,7 +279,6 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 			do {
 				point1 = rand() % this->instance->nIndexes;
 			} while (point1 + length < this->instance->nIndexes);
-			//Updating
 			for(int i = 0; i < this->populationSize; i++){
 				if(this->parents[i] == true){
 					for(int k = point1, j = point1 + length; k <= point1 + length; k++, j--){
@@ -296,6 +286,9 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 						this->population[i][k] = this->population[i][j];
 						this->population[i][j] = swapGen;
 					}
+				} else {
+                    for (int j = 0; j < this->instance->nIndexes; j++)
+				      this->population[i][j]=this->bestSolution[j] ;
 				}
 			}
 			break;
