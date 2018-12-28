@@ -297,8 +297,3 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 	}
 	return;
 }
-
-//TODO@@@@@@ if we want improve children before pushing them in the population
-void GeneticAlgorithm::localSearch() {
-	return;
-}
