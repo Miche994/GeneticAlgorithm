@@ -9,8 +9,6 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	srand(time(0));
 	this->instance = db;
 	this->timeout = seconds;
-	//3.85 is the best fit to make the popSize increase considering all the solutionSet
-	//this->populationSize = pow(2,db->nIndexes) * pow(10,-db->nIndexes/3.85) * 300; 	
 	this->populationSize = db->nIndexes * 10;
 	this->parentSize = this->populationSize * 7 / 8;
 	this->population = new bool*[this->populationSize];
