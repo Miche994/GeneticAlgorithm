@@ -1,4 +1,4 @@
-CFLAGS=-Wpedantic -Wall -D_REENTRANT
+CFLAGS=-fopenmp -Wpedantic -Wall -D_REENTRANT
 
 all: 	heuristicAlgorithm.exe
 
