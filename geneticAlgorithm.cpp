@@ -3,6 +3,8 @@
 #include <math.h>
 #include "geneticAlgorithm.h"
 
+
+
 using namespace std;
 
 int maxThreads;
@@ -22,7 +24,7 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	this->toPrint = true;
 }
 
-void GeneticAlgorithm::run() {
+S_tid GeneticAlgorithm::run() {
 	int startTime = time(NULL);
 	cout << "Tempo d'inizio: " << startTime << "\n";
     fflush(stdout);
@@ -34,6 +36,11 @@ void GeneticAlgorithm::run() {
 			storeResult();
 	}
 	cout << "Tempo di fine : " << time(NULL) << "\n";
+
+	s_pid.bestO = bestObjFunc;
+	s_pid.bestV = bestSolution;
+
+	return s_pid;
 }
 
 bool GeneticAlgorithm::isFeasibleMemory(bool *vectorToEvaluate){

@@ -5,13 +5,20 @@
 #include <fstream>
 #include "database.h"
 
+typedef struct {
+
+	int bestO;
+	bool *bestV;
+
+}S_tid;
+
 using namespace std;
 
 class GeneticAlgorithm {
 
 public:
 	GeneticAlgorithm(Database *db, int seconds);
-	void run();
+	S_tid run();
 private:
 	Database *instance;	
 	bool **population;
@@ -30,6 +37,7 @@ private:
 	bool isFeasibleMemory(bool *vectorToEvaluate);
 	bool* getActiveConfig(bool *vectorToEvaluate);
 	void storeResult();
+	S_tid s_pid;
 };
 
 #endif
