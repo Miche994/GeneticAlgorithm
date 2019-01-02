@@ -3,22 +3,23 @@
 
 #include <string>
 #include <fstream>
+#include <mutex>
 #include "database.h"
 
 typedef struct {
+	std::mutex mut;
+	bool *bestSolution;
+	int bestObjFunc;
 
-	int bestO;
-	bool *bestV;
-
-}S_tid;
+}SharedData;
 
 using namespace std;
 
 class GeneticAlgorithm {
 
 public:
-	GeneticAlgorithm(Database *db, int seconds);
-	S_tid run();
+	GeneticAlgorithm(Database *db, int seconds, string filename);
+	void run(SharedData *shared);
 private:
 	Database *instance;	
 	bool **population;
@@ -29,7 +30,7 @@ private:
 	int populationSize;
 	int parentSize;
 	int timeout;
-	ofstream myfile;
+	string filename;
 	int fitnessElaboration(bool *vectorToEvaluate);	 //compute the fitness value of the solution
 	void populationGeneration(); //fills the **population matrix && fills *fitnessVector
 	void solutionSetSelection(); //fills the *parents vector
@@ -37,7 +38,6 @@ private:
 	bool isFeasibleMemory(bool *vectorToEvaluate);
 	bool* getActiveConfig(bool *vectorToEvaluate);
 	void storeResult();
-	S_tid s_pid;
 };
 
 #endif

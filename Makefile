@@ -1,9 +1,9 @@
 CFLAGS=-fopenmp -Wpedantic -Wall -D_REENTRANT
 
-all: 	heuristicAlgorithm.exe
+all: 	ODBDPsolver_OMAMZ_group06.exe
 
-heuristicAlgorithm.exe: heuristicAlgorithm.o parser.o database.o geneticAlgorithm.o
-	g++ $(CFLAGS) -o heuristicAlgorithm.exe heuristicAlgorithm.o parser.o database.o geneticAlgorithm.o
+ODBDPsolver_OMAMZ_group06.exe: heuristicAlgorithm.o parser.o database.o geneticAlgorithm.o
+	g++ $(CFLAGS) -o ODBDPsolver_OMAMZ_group06.exe heuristicAlgorithm.o parser.o database.o geneticAlgorithm.o
 
 heuristicAlgorithm.o:	heuristicAlgorithm.cpp parser.h database.h geneticAlgorithm.h
 	g++ $(CFLAGS) -c heuristicAlgorithm.cpp
@@ -20,4 +20,4 @@ database.o:	database.cpp database.h
 .PHONY:	clean
 
 clean:
-	rm -f heuristicAlgorithm.exe *.o
+	rm -f ODBDPsolver_OMAMZ_group06.exe *.o

@@ -1,15 +1,12 @@
 #include <iostream>
 #include <time.h>
 #include <math.h>
+#include <thread>
 #include "geneticAlgorithm.h"
-
-
 
 using namespace std;
 
-int maxThreads;
-
-GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
+GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds, string filename) {
 	srand(time(0));
 	this->instance = db;
 	this->timeout = seconds;
@@ -22,25 +19,29 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	this->bestSolution = new bool[db->nIndexes];
 	this->bestObjFunc = 0;
 	this->toPrint = true;
+	this->filename = filename;
 }
 
-S_tid GeneticAlgorithm::run() {
+void GeneticAlgorithm::run(SharedData *shared) {
 	int startTime = time(NULL);
-	cout << "Tempo d'inizio: " << startTime << "\n";
-    fflush(stdout);
     populationGeneration();
 	while(time(NULL) - startTime < this->timeout) {
 		solutionSetSelection();
 		childrenGeneration(startTime);
-		if(this->toPrint == true)
-			storeResult();
+		if(this->toPrint == true){
+			shared->mut.lock();
+			if(this->bestObjFunc > shared->bestObjFunc){
+				//Updating shared best solution
+				shared->bestObjFunc = this->bestObjFunc;
+				for(int i = 0; i < this->instance->nIndexes; i++)
+					shared->bestSolution[i] = this->bestSolution[i];
+				storeResult();
+			}
+			this->toPrint = false;
+			shared->mut.unlock();
+		}
 	}
-	cout << "Tempo di fine : " << time(NULL) << "\n";
-
-	s_pid.bestO = bestObjFunc;
-	s_pid.bestV = bestSolution;
-
-	return s_pid;
+	return;
 }
 
 bool GeneticAlgorithm::isFeasibleMemory(bool *vectorToEvaluate){
@@ -56,11 +57,9 @@ bool GeneticAlgorithm::isFeasibleMemory(bool *vectorToEvaluate){
 
 bool* GeneticAlgorithm::getActiveConfig(bool *vectorToEvaluate){
 	bool *vectorConfigActive = new bool[this->instance->nConfigurations];
-	#pragma omp parallel for
 	for(int i = 0; i < this->instance->nConfigurations; i++)
         vectorConfigActive[i] = true;
 
-    #pragma omp parallel for
 	for(int i = 0; i < this->instance->nIndexes; i++){
         if(vectorToEvaluate[i] == false){
             for(int j = 0; j < this->instance->nConfigurations; j++){
@@ -94,23 +93,24 @@ void GeneticAlgorithm::storeResult(){
         configQuery[i] = bestConfig;
 	}
 
-  	this->myfile.open ("output.sol");
+	ofstream myfile;
+	myfile.open(this->filename);
 	//Storing result on file
 	for(int i = 0; i < this->instance->nConfigurations; i++){
 		for(int j = 0; j < this->instance->nQueries; j++)
 			if(i == configQuery[j])
-				this->myfile << "1 ";
+				myfile << "1 ";
 			else
-				this->myfile << "0 ";
-		this->myfile << "\n";
+				myfile << "0 ";
+		myfile << "\n";
 	}
-  	this->myfile.close();
+  	myfile.close();
 
+  	cout << "\nThread n: " << std::this_thread::get_id() << "\n";	
   	cout << "BestObjFunc: " << this->bestObjFunc << "\n";
   	for(int i = 0; i < this->instance->nIndexes; i++)
   		cout << this->bestSolution[i] << " ";
-  	cout << "\n";
-  	this->toPrint = false;
+  	cout << "\n\n";
 	delete [] vectConfigActive;
 	delete [] configQuery;
 	return;
@@ -124,7 +124,6 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 	int buildIndexCost = 0;
 	int totalQueryGain = 0;
     
-	#pragma omp parallel for
     for(int j = 0; j < this->instance->nConfigurations+1; j++)
 		vectConfigWork[j]=false;
 
@@ -167,7 +166,6 @@ int GeneticAlgorithm::fitnessElaboration(bool *vectorToEvaluate) {
 
 //COMPLETED with random generation
 void GeneticAlgorithm::populationGeneration() {
-	#pragma omp parallel for collapse(2)
 	for(int i = 0; i < this->populationSize; i++)
 		for(int j = 0; j < this->instance->nIndexes; j++)
 			this->population[i][j] = rand() & 1;
@@ -192,7 +190,6 @@ void GeneticAlgorithm::solutionSetSelection() {
 		}
 	}
 
-	#pragma omp parallel for
 	for(int i = 0; i < this->populationSize; i++)
 		this->parents[i] = false;
 
@@ -231,7 +228,7 @@ void GeneticAlgorithm::solutionSetSelection() {
 void GeneticAlgorithm::childrenGeneration(int startTime) {
 	int rangeMutation = 30, rangeInversion = 50, maxRange = 100;
 	int method = rand() % maxRange;
-	if(time(NULL) / (startTime + this->timeout) < 0.5){
+	if(time(NULL) / (startTime + this->timeout) < 0.8){
 		rangeMutation = 70;
 		rangeInversion = 90;
 	}
@@ -251,7 +248,6 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 					this->population[i][bitToChange1] = !this->population[i][bitToChange1];
 					this->population[i][bitToChange2] = !this->population[i][bitToChange2];
 				} else {
-					#pragma omp parallel for
                     for (int j = 0; j < this->instance->nIndexes; j++)
 				      this->population[i][j]=this->bestSolution[j] ;
 				}
@@ -273,7 +269,6 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 						this->population[i][j] = swapGen;
 					}
 				} else {
-					#pragma omp parallel for
                     for (int j = 0; j < this->instance->nIndexes; j++)
 				      this->population[i][j]=this->bestSolution[j] ;
 				}
@@ -287,7 +282,6 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 					for (j = i + 1; j < this->populationSize; j++){
 						if(this->parents[j] == true){
 							bool tmp;
-							#pragma omp parallel for
 							for(int k = rand() % this->instance->nIndexes; k < this->instance->nIndexes; k++){
 								tmp = this->population[i][k];
 								this->population[i][k] = this->population[j][k];
@@ -302,7 +296,6 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 						this->population[i][bitToChange] = !this->population[i][bitToChange];
 					}
 				} else {
-					#pragma omp parallel for
                     for (int j = 0; j < this->instance->nIndexes; j++)
 				      this->population[i][j]=this->bestSolution[j] ;
 				}
