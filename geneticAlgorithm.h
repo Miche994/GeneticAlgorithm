@@ -6,14 +6,14 @@
 #include <mutex>
 #include "database.h"
 
+using namespace std;
+
 typedef struct {
 	std::mutex mut;
 	bool *bestSolution;
 	int bestObjFunc;
 
 }SharedData;
-
-using namespace std;
 
 class GeneticAlgorithm {
 

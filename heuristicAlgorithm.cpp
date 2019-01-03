@@ -1,13 +1,14 @@
 #include <iostream>
 #include <thread>
+#include <pthread.h>
 #include "parser.h"
 #include "database.h"
 #include "geneticAlgorithm.h"
 
 using namespace std;
 
-void doOnThread(Database *db, int seconds, SharedData *shared) {
-	GeneticAlgorithm *algorithm = new GeneticAlgorithm(db, seconds, "output.sol");
+void doOnThread(Database *db, int seconds, SharedData *shared, string filename) {
+	GeneticAlgorithm *algorithm = new GeneticAlgorithm(db, seconds, filename);
 	algorithm->run(shared);
 	return;
 }
@@ -20,8 +21,9 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	string instanceName = string(argv[1]);
 	//Checking the file extension.
-	if(string(argv[1]).find(".odbdp") == string::npos){
+	if(instanceName.find(".odbdp") == string::npos){
 		cout << "Need an existing .odbdp file\n";
 		return 1;	
 	} else {
@@ -36,8 +38,8 @@ int main(int argc, char *argv[]) {
 		cout << "Usage: -t timelimit\n";
 		return 1;
 	}
-	int seconds;
 
+	int seconds;
 	try {
  	   seconds = std::stoi (argv[3]);
 	} catch (const std::exception& e) {
@@ -47,11 +49,13 @@ int main(int argc, char *argv[]) {
 	
 	int nThreads = std::thread::hardware_concurrency();
 	
+	string filename = string(argv[1]).substr (instanceName.size() - 16, 10) + "_OMAMZ_group06.sol";
 	std::vector<std::thread> my_array;
 	SharedData shared;
 	Database *db = new Database();
 	Parser *parser = new Parser();
 	
+	srand(time(0));
     parser->parse(argv[1], db);
 	shared.bestSolution = new bool[db->nIndexes];
 	shared.bestObjFunc = -1;
@@ -62,7 +66,7 @@ int main(int argc, char *argv[]) {
 	cout << "Tempo d'inizio: " << time(NULL) << "\n";
     fflush(stdout);
 	for (int i = 0; i < nThreads; i++){
-		std::thread my_thread(doOnThread, db, seconds, &shared);		
+		std::thread my_thread(doOnThread, db, seconds, &shared, filename);		
 		my_array.push_back(std::move(my_thread));
 	}
 

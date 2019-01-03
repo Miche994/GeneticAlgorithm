@@ -2,12 +2,12 @@
 #include <time.h>
 #include <math.h>
 #include <thread>
+#include <pthread.h>
 #include "geneticAlgorithm.h"
 
 using namespace std;
 
 GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds, string filename) {
-	srand(time(0));
 	this->instance = db;
 	this->timeout = seconds;
 	this->populationSize = db->nIndexes * 10;
@@ -17,6 +17,8 @@ GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds, string filename) {
 		this->population[i] = new bool[db->nIndexes];
 	this->parents = new bool[this->populationSize];
 	this->bestSolution = new bool[db->nIndexes];
+	for (int i = 0; i < this->instance->nIndexes; i++)
+		this->bestSolution[i] = 0;
 	this->bestObjFunc = 0;
 	this->toPrint = true;
 	this->filename = filename;
@@ -77,6 +79,7 @@ void GeneticAlgorithm::storeResult(){
 	bool *vectConfigActive = this->getActiveConfig(this->bestSolution);
 	int *configQuery = new int[this->instance->nQueries];
 	int bestConfig;
+	ofstream myfile;
 
 	//Compute best configs
 	for(int i = 0, maxQueryGain = 0; i < this->instance->nQueries; i++){
@@ -93,7 +96,6 @@ void GeneticAlgorithm::storeResult(){
         configQuery[i] = bestConfig;
 	}
 
-	ofstream myfile;
 	myfile.open(this->filename);
 	//Storing result on file
 	for(int i = 0; i < this->instance->nConfigurations; i++){
@@ -172,7 +174,7 @@ void GeneticAlgorithm::populationGeneration() {
 	return;
 }
 
-//COMPLETED with Roulette Wheel Selection method
+//COMPLETED
 void GeneticAlgorithm::solutionSetSelection() {
 	int *popFitness = new int[this->populationSize];
 	int currentFitness = 0, sumFitness = 0;
@@ -193,9 +195,9 @@ void GeneticAlgorithm::solutionSetSelection() {
 	for(int i = 0; i < this->populationSize; i++)
 		this->parents[i] = false;
 
-	//Roulette untill it fails 15 times sequentially
+	//Roulette Selection
 	while(selectedParents < parentSize) {
-		if(counter++ > 20)
+		if(counter > 100)
 			break;
 		i = 0;
 		currentSum = popFitness[0];
@@ -208,8 +210,31 @@ void GeneticAlgorithm::solutionSetSelection() {
 			this->parents[i] = true;
 			selectedParents += 1;
 			counter = 0;
+		} else{
+			counter++;
 		}
 	}
+	counter = 0;
+	//Tournament Selection 
+	while (selectedParents<this->parentSize){
+		if(counter > 100)
+			break;
+		int randomValue1 = rand() % (this->populationSize);
+		int randomValue2 = rand() % (this->populationSize);
+		int randomValue3 = rand() % (this->populationSize);
+		int bestFit = popFitness[randomValue1];
+		int bestInd = randomValue1;
+		if (bestFit < popFitness[randomValue2]) { bestFit = popFitness[randomValue2]; bestInd = randomValue2; }
+		if (bestFit < popFitness[randomValue3]) { bestFit = popFitness[randomValue3]; bestInd = randomValue3; }
+		if (this->parents[bestInd] == false){
+			selectedParents++;
+			this->parents[bestInd] = true;
+			counter = 0;
+		} else {
+			counter++;
+		}
+	}
+	
 	//Selection from a random point of the remaining parents
 	randomValue = rand()%(this->populationSize-this->parentSize);
 	while(selectedParents < this->parentSize) {
@@ -240,13 +265,13 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 	switch(method) {
 		//Mutation
 		case 0 : {
-			int bitToChange1, bitToChange2;
+			int bitToChange;
 			for (int i = 0; i < this->populationSize; i++){
 				if(this->parents[i] == true){
-					bitToChange1 = rand() % this->instance->nIndexes;
-					bitToChange2 = rand() % this->instance->nIndexes;
-					this->population[i][bitToChange1] = !this->population[i][bitToChange1];
-					this->population[i][bitToChange2] = !this->population[i][bitToChange2];
+					bitToChange = rand() % this->instance->nIndexes;
+					this->population[i][bitToChange] = !this->population[i][bitToChange];
+					bitToChange = rand() % this->instance->nIndexes;
+					this->population[i][bitToChange] = !this->population[i][bitToChange];
 				} else {
                     for (int j = 0; j < this->instance->nIndexes; j++)
 				      this->population[i][j]=this->bestSolution[j] ;
@@ -265,7 +290,7 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 				if(this->parents[i] == true){
 					for(int k = point1, j = point1 + length; k <= point1 + length; k++, j--){
 						swapGen = this->population[i][k];
-							this->population[i][k] = this->population[i][j];
+						this->population[i][k] = this->population[i][j];
 						this->population[i][j] = swapGen;
 					}
 				} else {
