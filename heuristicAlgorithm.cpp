@@ -61,14 +61,16 @@ int main(int argc, char *argv[]) {
 	shared.bestObjFunc = -1;
 
 	if(nThreads > 5) 
-		nThreads = 5;
+		nThreads = 4;
 	cout << "Number of threads: " << nThreads << "\n";
 	cout << "Tempo d'inizio: " << time(NULL) << "\n";
     fflush(stdout);
-	for (int i = 0; i < nThreads; i++){
+	for (int i = 1; i < nThreads; i++){
 		std::thread my_thread(doOnThread, db, seconds, &shared, filename);		
 		my_array.push_back(std::move(my_thread));
 	}
+
+	doOnThread(db, seconds, &shared, filename);
 
 	for (std::thread & th : my_array){
 		if (th.joinable())

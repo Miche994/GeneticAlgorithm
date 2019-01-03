@@ -2,7 +2,7 @@ CFLAGS=-fopenmp -Wpedantic -Wall -D_REENTRANT# -static-libgcc -static-libstdc++
 #FOR LINUX
 COMPILER=g++
 #FOR WINDOWS
-#COMPILER=x86_64-w64-mingw32-c++ -static -lpthread
+#COMPILER=x86_64-w64-mingw32-c++# -static -lpthread
 
 all: 	ODBDPsolver_OMAMZ_group06.exe
 
