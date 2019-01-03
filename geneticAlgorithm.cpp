@@ -2,7 +2,7 @@
 #include <time.h>
 #include <math.h>
 #include <thread>
-#include <pthread.h>
+//#include <pthread.h>
 #include "geneticAlgorithm.h"
 
 using namespace std;

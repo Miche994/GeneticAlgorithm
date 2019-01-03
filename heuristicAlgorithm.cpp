@@ -1,7 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <pthread.h>
-#include "parser.h"
+//#include "parser.h"
 #include "database.h"
 #include "geneticAlgorithm.h"
 
