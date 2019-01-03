@@ -25,11 +25,12 @@ private:
 	bool **population;
 	bool *bestSolution;
 	bool *parents;		//parents[populationSize]
-	bool toPrint;
+	bool improved;
 	int bestObjFunc;
 	int populationSize;
 	int parentSize;
 	int timeout;
+	int lastImprovement;
 	string filename;
 	int fitnessElaboration(bool *vectorToEvaluate);	 //compute the fitness value of the solution
 	void populationGeneration(); //fills the **population matrix && fills *fitnessVector

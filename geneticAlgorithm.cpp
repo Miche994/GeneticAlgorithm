@@ -2,26 +2,27 @@
 #include <time.h>
 #include <math.h>
 #include <thread>
-//#include <pthread.h>
 #include "geneticAlgorithm.h"
 
 using namespace std;
 
 GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds, string filename) {
+	srand(time(NULL) + std::hash<std::thread::id>{}(std::this_thread::get_id()));	
 	this->instance = db;
 	this->timeout = seconds;
+	this->bestObjFunc = 0;
+	this->improved = true;
+	this->filename = filename;
+	this->lastImprovement = time(NULL);
 	this->populationSize = db->nIndexes * 10;
-	this->parentSize = this->populationSize * 7 / 8;
+	this->parentSize = this->populationSize * 3 / 4;
 	this->population = new bool*[this->populationSize];
-	for (int i = 0; i < populationSize; i++) 
-		this->population[i] = new bool[db->nIndexes];
 	this->parents = new bool[this->populationSize];
 	this->bestSolution = new bool[db->nIndexes];
+	for (int i = 0; i < populationSize; i++) 
+		this->population[i] = new bool[db->nIndexes];
 	for (int i = 0; i < this->instance->nIndexes; i++)
-		this->bestSolution[i] = 0;
-	this->bestObjFunc = 0;
-	this->toPrint = true;
-	this->filename = filename;
+		this->bestSolution[i] = false;
 }
 
 void GeneticAlgorithm::run(SharedData *shared) {
@@ -30,7 +31,7 @@ void GeneticAlgorithm::run(SharedData *shared) {
 	while(time(NULL) - startTime < this->timeout) {
 		solutionSetSelection();
 		childrenGeneration(startTime);
-		if(this->toPrint == true){
+		if(this->improved == true){
 			shared->mut.lock();
 			if(this->bestObjFunc > shared->bestObjFunc){
 				//Updating shared best solution
@@ -39,9 +40,18 @@ void GeneticAlgorithm::run(SharedData *shared) {
 					shared->bestSolution[i] = this->bestSolution[i];
 				storeResult();
 			}
-			this->toPrint = false;
+			this->improved = false;
 			shared->mut.unlock();
 		}
+		if(time(NULL) >= this->lastImprovement + this->instance->nIndexes/4){
+			this->bestObjFunc = 0;
+			for(int i = 0; i < this->instance->nIndexes; i++)
+				this->bestSolution[i] = false;
+			srand(time(NULL) + std::hash<std::thread::id>{}(std::this_thread::get_id()) / 3);
+			populationGeneration();
+			this->lastImprovement = time(NULL);
+		}
+		
 	}
 	return;
 }
@@ -108,11 +118,12 @@ void GeneticAlgorithm::storeResult(){
 	}
   	myfile.close();
 
-  	cout << "\nThread n: " << std::this_thread::get_id() << "\n";	
+  	cout << "Thread n: " << std::this_thread::get_id() << "\n";	
   	cout << "BestObjFunc: " << this->bestObjFunc << "\n";
   	for(int i = 0; i < this->instance->nIndexes; i++)
   		cout << this->bestSolution[i] << " ";
   	cout << "\n\n";
+  	fflush(stdout);
 	delete [] vectConfigActive;
 	delete [] configQuery;
 	return;
@@ -182,10 +193,11 @@ void GeneticAlgorithm::solutionSetSelection() {
 
 	for(i = 0; i < this->populationSize; i++) {
 		currentFitness = fitnessElaboration(this->population[i]);
-		sumFitness += currentFitness;
-		popFitness[i] = currentFitness; //We could store sqrt
+		sumFitness += abs(currentFitness);
+		popFitness[i] = abs(currentFitness); //We could store sqrt
 		if(currentFitness > this->bestObjFunc && isFeasibleMemory(this->population[i])){
-			toPrint = true;
+			improved = true;
+			this->lastImprovement = time(NULL);
 			this->bestObjFunc = currentFitness;
 			for (int j = 0; j < this->instance->nIndexes; j++)
 				this->bestSolution[j] = this->population[i][j];	
@@ -234,7 +246,6 @@ void GeneticAlgorithm::solutionSetSelection() {
 			counter++;
 		}
 	}
-	
 	//Selection from a random point of the remaining parents
 	randomValue = rand()%(this->populationSize-this->parentSize);
 	while(selectedParents < this->parentSize) {
@@ -251,12 +262,8 @@ void GeneticAlgorithm::solutionSetSelection() {
 }
 
 void GeneticAlgorithm::childrenGeneration(int startTime) {
-	int rangeMutation = 30, rangeInversion = 50, maxRange = 100;
+	int rangeMutation = 70, rangeInversion = 85, maxRange = 100;
 	int method = rand() % maxRange;
-	if(time(NULL) / (startTime + this->timeout) < 0.8){
-		rangeMutation = 70;
-		rangeInversion = 90;
-	}
 
 	if(method <= rangeMutation) method = 0;
 	else if (method <= rangeInversion) method = 1;

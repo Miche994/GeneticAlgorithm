@@ -1,9 +1,19 @@
+#include <stdio.h>
 #include <iostream>
 #include <thread>
-//#include <pthread.h>
 #include "parser.h"
 #include "database.h"
 #include "geneticAlgorithm.h"
+
+#ifdef _WIN32
+	#include <direct.h>
+	#define GetCurrentDir _getcwd
+	#define SEPARATOR "\\"
+#else
+	#include <unistd.h>
+	#define GetCurrentDir getcwd
+	#define SEPARATOR "/"
+#endif
 
 using namespace std;
 
@@ -48,20 +58,20 @@ int main(int argc, char *argv[]) {
     }
 	
 	int nThreads = std::thread::hardware_concurrency();
-	
-	string filename = string(argv[1]).substr (instanceName.size() - 16, 10) + "_OMAMZ_group06.sol";
+	char buff[FILENAME_MAX];
+  	GetCurrentDir(buff, FILENAME_MAX);
+	string filename = string(buff) + SEPARATOR + string(argv[1]).substr (instanceName.size() - 16, 10) + "_OMAMZ_group06.sol";
 	std::vector<std::thread> my_array;
 	SharedData shared;
 	Database *db = new Database();
 	Parser *parser = new Parser();
-	
-	srand(time(0));
+
     parser->parse(argv[1], db);
 	shared.bestSolution = new bool[db->nIndexes];
 	shared.bestObjFunc = -1;
 
-	if(nThreads > 5) 
-		nThreads = 4;
+	if(nThreads > 2) 
+		nThreads = 2;
 	cout << "Number of threads: " << nThreads << "\n";
 	cout << "Tempo d'inizio: " << time(NULL) << "\n";
     fflush(stdout);
@@ -76,6 +86,7 @@ int main(int argc, char *argv[]) {
 		if (th.joinable())
 			th.join();
 	}
+
 	cout << "Tempo di fine : " << time(NULL) << "\n";
 
     return 0;
