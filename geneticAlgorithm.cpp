@@ -5,12 +5,16 @@
 
 using namespace std;
 
+int mutationValue = 3;
+int crossValue = 3;
+int inversionValue = 3;
+
 GeneticAlgorithm::GeneticAlgorithm(Database *db, int seconds) {
 	srand(time(0));
 	this->instance = db;
 	this->timeout = seconds;
 	this->populationSize = db->nIndexes * 10;
-	this->parentSize = this->populationSize * 7/8;
+	this->parentSize = this->populationSize * 3/4;
 	this->population = new bool*[this->populationSize];
 	for (int i = 0; i < populationSize; i++) 
 		this->population[i] = new bool[db->nIndexes];
@@ -204,7 +208,7 @@ void GeneticAlgorithm::solutionSetSelection() {
 	//Finish order the population
 
 
-	//Roulette untill it fails 15 times sequentially
+	//Roulette untill it fails 20 times sequentially
 	/*while(selectedParents < parentSize) {
 		if (counter++ > 20)
 		break; 
@@ -220,17 +224,8 @@ void GeneticAlgorithm::solutionSetSelection() {
 			selectedParents += 1;
 			counter = 0;
 		}
-	}
-	//Selection from a random point of the remaining parents
-	randomValue = rand()%(this->populationSize-this->parentSize);
-	while(selectedParents < this->parentSize) {
-		if(this->parents[randomValue] == false){
-			this->parents[randomValue] = true;
-			selectedParents++;
-		}
-		if(randomValue++ == this->populationSize)
-			randomValue = 0;
 	}*/
+	
 	
 	//Tournament selection
 	int popSize = this->populationSize;
@@ -249,6 +244,18 @@ void GeneticAlgorithm::solutionSetSelection() {
 		}
 	}
 	//cout << "Parents: " << selectedParents << "\n";
+
+	//Selection from a random point of the remaining parents
+	/*randomValue = rand()%(this->populationSize-this->parentSize);
+	while(selectedParents < this->parentSize) {
+		if(this->parents[randomValue] == false){
+			this->parents[randomValue] = true;
+			selectedParents++;
+		}
+		if(randomValue++ == this->populationSize)
+		randomValue = 0;
+	}*/
+
 	delete [] popFitness;
 	return;
 }
@@ -276,13 +283,14 @@ void GeneticAlgorithm::notParentSubstitution(){
 }
 
 void GeneticAlgorithm::childrenGeneration(int startTime) {
+	//int rangeMutation = 70, rangeInversion = 85, maxRange = 100;
 	int rangeMutation = 30, rangeInversion = 50, maxRange = 100;
-	int method = rand() % maxRange;
 	if(time(NULL) / (startTime + this->timeout) < 0.67){
 		rangeMutation = 70;
 		rangeInversion = 90;
 	}
-
+	
+	int method = rand() % maxRange;
 	if(method <= rangeMutation) method = 0;
 	else if (method <= rangeInversion) method = 1;
 	else method = 2;
@@ -298,10 +306,7 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 					bitToChange2 = rand() % this->instance->nIndexes;
 					this->population[i][bitToChange1] = !this->population[i][bitToChange1];
 					this->population[i][bitToChange2] = !this->population[i][bitToChange2];
-				} /*else {
-                    for (int j = 0; j < this->instance->nIndexes; j++)
-				      this->population[i][j]=this->bestSolution[j] ;
-				}*/
+				} 
 			}
 			break;
 		}
@@ -320,10 +325,7 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 							this->population[i][k] = this->population[i][j];
 						this->population[i][j] = swapGen;
 					}
-				} /*else {
-                    for (int j = 0; j < this->instance->nIndexes; j++)
-				      this->population[i][j]=this->bestSolution[j] ;
-				}*/
+				} 
 			}
 			break;
 		}
@@ -348,10 +350,7 @@ void GeneticAlgorithm::childrenGeneration(int startTime) {
 						int bitToChange = rand() % this->instance->nIndexes;
 						this->population[i][bitToChange] = !this->population[i][bitToChange];
 					}
-				} /*else {
-                    for (int j = 0; j < this->instance->nIndexes; j++)
-				      this->population[i][j]=this->bestSolution[j] ;
-				}*/
+				} 
 			}
 			break;
 		}

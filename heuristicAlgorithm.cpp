@@ -27,6 +27,5 @@ int main(int argc, char *argv[]) {
     GeneticAlgorithm *algorithm = new GeneticAlgorithm(db, seconds);
     free(parser);
     algorithm->run();
-
     return 0;
 }

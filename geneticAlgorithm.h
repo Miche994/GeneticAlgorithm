@@ -15,6 +15,7 @@ public:
 private:
 	Database *instance;	
 	bool **population;
+	int **orderedPopulation;
 	bool *bestSolution;
 	bool *parents;		//parents[populationSize]
 	bool toPrint;
@@ -26,6 +27,7 @@ private:
 	int fitnessElaboration(bool *vectorToEvaluate);	 //compute the fitness value of the solution
 	void populationGeneration(); //fills the **population matrix && fills *fitnessVector
 	void solutionSetSelection(); //fills the *parents vector
+	void notParentSubstitution();
 	void childrenGeneration(int startTime);	 //fills the **children matrix
 	bool isFeasibleMemory(bool *vectorToEvaluate);
 	bool* getActiveConfig(bool *vectorToEvaluate);
