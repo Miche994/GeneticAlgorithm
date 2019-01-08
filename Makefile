@@ -1,20 +1,27 @@
-CFLAGS=-Wpedantic -Wall -D_REENTRANT
+CFLAGS=-fopenmp -Wpedantic -Wall -D_REENTRANT# -static-libgcc -static-libstdc++
+#FOR LINUX
+COMPILER=g++
+#FOR WINDOWS
+#COMPILER=x86_64-w64-mingw32-c++# -static -lpthread
 
-all: 	heuristicAlgorithm.exe
+all: 	ODBDPsolver_OMAMZ_group06.exe
 
-heuristicAlgorithm.exe: heuristicAlgorithm.o parser.o database.o 
-	g++ $(CFLAGS) -o heuristicAlgorithm.exe heuristicAlgorithm.o parser.o database.o
+ODBDPsolver_OMAMZ_group06.exe: heuristicAlgorithm.o parser.o database.o geneticAlgorithm.o
+	$(COMPILER) $(CFLAGS) -o ODBDPsolver_OMAMZ_group06.exe heuristicAlgorithm.o parser.o database.o geneticAlgorithm.o
 
-heuristicAlgorithm.o:	heuristicAlgorithm.cpp parser.h database.h
-	g++ $(CFLAGS) -c heuristicAlgorithm.cpp
+heuristicAlgorithm.o:	heuristicAlgorithm.cpp parser.h database.h geneticAlgorithm.h
+	$(COMPILER) $(CFLAGS) -c heuristicAlgorithm.cpp
+
+geneticAlgorithm.o:	geneticAlgorithm.cpp database.h
+	$(COMPILER) $(CFLAGS) -c geneticAlgorithm.cpp
 
 parser.o:	parser.cpp database.h
-	g++ $(CFLAGS) -c parser.cpp
+	$(COMPILER) $(CFLAGS) -c parser.cpp
 
 database.o:	database.cpp database.h
-	g++ $(CFLAGS) -c database.cpp
+	$(COMPILER) $(CFLAGS) -c database.cpp
 
 .PHONY:	clean
 
 clean:
-	rm -f heuristicAlgorithm.exe *.o
+	rm -f ODBDPsolver_OMAMZ_group06.exe *.o
